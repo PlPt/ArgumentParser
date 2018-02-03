@@ -16,6 +16,7 @@ public class Main {
             try {
                 String cmd = s.nextLine().trim();
                 String res = arg.parse(cmd);
+                if(res!=null)
                 System.out.println("-->" + res);
             } catch (Exception x) {
                 System.out.println(String.format("[%s] %s",x.getClass().getName(),x.getMessage()));
