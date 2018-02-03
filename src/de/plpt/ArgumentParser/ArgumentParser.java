@@ -54,7 +54,8 @@ public class ArgumentParser {
      *                                    parsing string and executing Methods.
      * @throws IntervalViolationException Raised when a given Integer interval is violated
      */
-    public <T extends Object> T parse(String command) throws ArgumentParserException, IntervalViolationException {
+    @SuppressWarnings("unchecked")
+    public <T> T parse(String command) throws ArgumentParserException, IntervalViolationException {
 
         Method meth = getMatchingMethod(command);
 
@@ -75,7 +76,9 @@ public class ArgumentParser {
         String annoCommand = anno.command();
         Pattern pattern = Pattern.compile(annoCommand);
         Matcher matcher = pattern.matcher(command);
-        matcher.matches();
+        if (!matcher.matches())
+            throw new ArgumentParserException(
+                    String.format("Command '%s' does not match pattern '%s'", command, annoCommand));
 
         Object[] z = new Object[meth.getParameterCount()];
 
@@ -104,7 +107,7 @@ public class ArgumentParser {
                         || (int) parsedValue < parameterInfo.minValue())) {
                     throw new IntervalViolationException(
                             String.format("Parameter[%s]'s value '%s' is not Element of interval [%s,%s]"
-                                          , i, parsedValue, parameterInfo.minValue(), parameterInfo.maxValue()));
+                                    , i, parsedValue, parameterInfo.minValue(), parameterInfo.maxValue()));
                 }
             }
 
