@@ -50,9 +50,11 @@ public class ArgumentParser {
      * @param <T>     Return type of matching Method defined in executable Object.
      * @return Result value (return type) of matching Method in executableObject. In worst case use as Object an call
      * Object#toString() on it.
+     * @throws ArgumentParserException    Parser exception raised when there are problems
+     *                                    parsing string and executing Methods.
+     * @throws IntervalViolationException Raised when a given Integer interval is violated
      */
-    public <T extends Object> T parse(String command) {
-
+    public <T extends Object> T parse(String command) throws ArgumentParserException, IntervalViolationException {
 
         Method meth = getMatchingMethod(command);
 
@@ -62,10 +64,11 @@ public class ArgumentParser {
 
             if (mm != null) {
                 String regex = mm.getAnnotation(CommandInfo.class).command();
-                throw new IllegalArgumentException(String.format("Command '%s' does not match regex '%s'", command, regex));
+                throw new IllegalArgumentException(
+                        String.format("Command '%s' does not match regex '%s'", command, regex));
             }
 
-            throw new NullPointerException("No matching Method found // unkonown command");
+            throw new ArgumentParserException("Unknown Command");
         }
 
         CommandInfo anno = meth.getAnnotation(CommandInfo.class);
@@ -87,7 +90,9 @@ public class ArgumentParser {
             try {
                 parsedValue = parseValue(paramString, type);
             } catch (NumberFormatException nfe) {
-                NumberFormatException nfex = new NumberFormatException(String.format("Parameter[%s] with value '%s' can't be parsed to specified type %s", i, paramString, type.getName()));
+                NumberFormatException nfex = new NumberFormatException(
+                        String.format("Parameter[%s] with value '%s' can't be parsed to specified type %s"
+                                , i, paramString, type.getName()));
                 nfex.initCause(nfe);
                 throw nfex;
             }
@@ -95,8 +100,11 @@ public class ArgumentParser {
 
             if (paramAnno.length > 0) {
                 ParameterInfo parameterInfo = (ParameterInfo) paramAnno[0];
-                if (parsedValue instanceof Number && ((int) parsedValue > parameterInfo.maxValue() || (int) parsedValue < parameterInfo.minValue())) {
-                    throw new IllegalArgumentException(String.format("Value '%s' is not Element of interval [%s,%s]", parsedValue, parameterInfo.minValue(), parameterInfo.maxValue()));
+                if (parsedValue instanceof Number && ((int) parsedValue > parameterInfo.maxValue()
+                        || (int) parsedValue < parameterInfo.minValue())) {
+                    throw new IntervalViolationException(
+                            String.format("Parameter[%s]'s value '%s' is not Element of interval [%s,%s]"
+                                          , i, parsedValue, parameterInfo.minValue(), parameterInfo.maxValue()));
                 }
             }
 
@@ -106,12 +114,13 @@ public class ArgumentParser {
         try {
             return (T) (meth.invoke(executableObject, z));
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new ArgumentParserException("Illegal Access on executable object: " + e.getMessage(), e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            throw new ArgumentParserException(
+                    String.format("Method %s' cannot be invoked: %s", meth.getName(), e.getMessage()), e);
         }
 
-        return null;
+
     }
     //endregion
 
@@ -207,7 +216,8 @@ public class ArgumentParser {
 
             CommandInfo anno = m.getAnnotation(CommandInfo.class);
             String annoCommand = anno.command();
-            if ((inputCommand.contains(" ") && annoCommand.contains(inputCommand.split(" ")[0])) || annoCommand.contains(inputCommand))
+            if ((inputCommand.contains(" ") && annoCommand.contains(inputCommand.split(" ")[0]))
+                    || annoCommand.contains(inputCommand))
                 return m;
 
         }
