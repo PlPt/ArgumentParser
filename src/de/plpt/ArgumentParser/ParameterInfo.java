@@ -35,6 +35,12 @@ public @interface ParameterInfo {
      * @return maxValue of Integer range
      */
     int maxValue() default Integer.MAX_VALUE;
+
+    /**
+     * Defines lenght of array in parameter
+     * @return expected array length
+     */
+    int arrayLenght() default  0;
 }
 //endregion
 

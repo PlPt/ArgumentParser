@@ -23,6 +23,12 @@ public @interface CommandInfo {
      */
     String command();
 
+    /**
+     * Defines Description of Method
+     * @return string description of Method
+     */
+    String description();
+
 }
 //endregion
 
