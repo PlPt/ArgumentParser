@@ -25,7 +25,7 @@ public class ArgumentObject {
                     String cmd = s.nextLine().trim();
                     String res = null;
 
-                    res = argumentParser.parse(cmd);
+                    res = argumentParser.parse(cmd,12);
 
                     if(res!=null)
                         System.out.println("-->" + res);
@@ -53,6 +53,11 @@ public class ArgumentObject {
     @CommandInfo(command = "readArray ([^;\\n]+);([^;\\n]+)",description = "reads input to an array of two elements")
     public void readArray(@ParameterInfo(arrayLenght = 2) String[] names) {
         list.addAll(List.of(names));
+    }
+
+    @CommandInfo(command = "po (.*)",description = "reads input to an array of two elements")
+    public void parseToObject(ArgumentDataType type,int z) {
+        System.out.println(type.i + "--" + z);
     }
 
     @CommandInfo(command = "put ([^;\\n]+)",description = "puts a new value into a map")
